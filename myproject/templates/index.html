@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agora Video Call</title>
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+    <style>
+        #video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        video {
+            width: 300px;
+            height: 200px;
+            margin: 10px;
+        }
+
+      
+
+    </style>
+</head>
+<body>
+    <h2>Agora Video Call</h2>
+    <button onclick="joinChannel()">Join Call</button>
+    <button onclick="leaveChannel()">Leave Call</button>
+    <div id="video-container"></div>
+
+    <script>
+        const APP_ID = "fb139cb7dee74d688969f813d052ae80";  // यहां अपनी AGORA APP ID डालें
+        const CHANNEL_NAME = "test-channel";  // यह चैनल नाम Django API से मैच करना चाहिए
+        let client, localTrack, remoteTracks = {};
+
+        async function joinChannel() {
+            try {
+                const response = await fetch(`/get-token/${CHANNEL_NAME}/`);
+                const data = await response.json();
+                const token = data.token;
+                const uid = data.uid;
+
+                client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+
+                await client.join(APP_ID, CHANNEL_NAME, token, uid);
+                console.log("User joined the channel ✅", uid);
+
+                const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+                localTrack = { audioTrack, videoTrack };
+
+                let localVideoContainer = document.createElement("div");
+                localVideoContainer.id = `local-video`;
+                document.getElementById("video-container").appendChild(localVideoContainer);
+
+                await videoTrack.play(localVideoContainer);
+                console.log("Local video started ✅");
+
+                await client.publish([audioTrack, videoTrack]);
+                console.log("Local track published ✅");
+
+                client.on("user-published", async (user, mediaType) => {
+                    console.log("🔥 Remote User Published Event Triggered:", user.uid);
+                    await client.subscribe(user, mediaType);
+
+                    if (mediaType === "video") {
+                        let remoteVideoContainer = document.createElement("div");
+                        remoteVideoContainer.id = `remote-${user.uid}`;
+                        document.getElementById("video-container").appendChild(remoteVideoContainer);
+
+                        if (user.videoTrack) {
+                            user.videoTrack.play(remoteVideoContainer);
+                            console.log("📹 Remote video started for user:", user.uid);
+                        } else {
+                            console.error("🚨 Video track is missing for remote user:", user.uid);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error joining Agora channel:", error);
+            }
+        }
+
+
+
+        function leaveChannel() {
+            if (localTrack) {
+                localTrack.stop();
+                localTrack.close();
+                client.leave();
+                console.log("Left the channel");
+            }
+        }
+    </script>
+</body>
+</html>

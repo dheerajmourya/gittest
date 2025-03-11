@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Cost Calculator</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+        h2 {
+            color: #007bff;
+            text-align: center;
+        }
+        .btn-primary {
+            width: 100%;
+            font-size: 18px;
+        }
+        .result-card {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .result-card h4 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+        .result-card h4 b {
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2>Travel Cost Calculator</h2>
+    
+    <div class="card">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-primary">Calculate</button>
+        </form>
+    </div>
+
+    {% if final_package_cost is not None %}
+    <div class="result-card">
+        <h4>📌 <b>Stay Cost:</b> ₹{{ hotel_cost }}</h4>
+        <h4>🚗 <b>Transport Cost:</b> ₹{{ transport_cost }}</h4>
+        <h4>🚌 <b>Volvo Cost:</b> ₹{{ volvo_cost }}</h4>
+        <h4>⚙️ <b>Operational Cost:</b> ₹{{ operational_cost }}</h4>
+        <h4>💰 <b>Profit Amount:</b> ₹{{ profit_amount }}</h4>
+        <h4><b>🏆 Final Package Cost: ₹{{ final_package_cost }}</b></h4>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
