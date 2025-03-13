@@ -60,6 +60,10 @@ from django.db import models
 class TripPlace(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    class Meta:
+        verbose_name = "Destination"
+        verbose_name_plural = "Destinations"
+
     def __str__(self):
         return self.name
 
@@ -85,6 +89,10 @@ class TripPlacePricing(models.Model):
     # Volvo Pricing
     VOLVO_1_SIDE_PRICE = models.PositiveIntegerField(default=0)
     VOLVO_BOTH_SIDE_PRICE = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Destination Price"
+        verbose_name_plural = "Destination Price"
 
     def __str__(self):
         return f"{self.trip_place} Pricing"

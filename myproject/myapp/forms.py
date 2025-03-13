@@ -3,7 +3,7 @@ from django import forms
 from .models import TripPlace
 
 class CostCalculatorForm(forms.Form):
-    trip_place = forms.ModelChoiceField(queryset=TripPlace.objects.all(), label="Trip Place")
+    trip_place = forms.ModelChoiceField(queryset=TripPlace.objects.all(), label="Destinations")
     no_of_pax = forms.IntegerField(label="Number of People")
     no_of_stays = forms.IntegerField(label="Number of Stays")
     no_of_rooms = forms.IntegerField(label="Number of Rooms")
