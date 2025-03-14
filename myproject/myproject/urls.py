@@ -17,15 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 from myapp.views import cost_calculator_view, generate_agora_token, home, video_call
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+# from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('blog/', include('myapp.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login पर JWT Token मिलेगा
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh Token
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login पर JWT Token मिलेगा
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh Token
 
     path('cost-calculator/', cost_calculator_view, name='cost_calculator'),
     path('get-token/<str:channel_name>/', generate_agora_token, name='get-agora-token'),
