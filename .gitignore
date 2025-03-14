@@ -6,12 +6,31 @@ bin-release/
 
 # Other files and folders
 .settings/
+.idea/
+.vscode/
+node_modules/
+dist/
+coverage/
+.cache/
+
+# Django specific
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+db.sqlite3-journal
+media/
 
 # Executables
 *.swf
 *.air
 *.ipa
 *.apk
+
+# OS generated files
+.DS_Store
+Thumbs.db
 
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
