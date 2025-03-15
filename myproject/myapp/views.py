@@ -18,119 +18,103 @@ def home(request):
 
 from .models import HotelPrice, TransportPrice, TripPlacePricing, VolvoPrice
 
-def calculate_cost(trip_place, no_of_pax, no_of_stays, hotel_category, no_of_rooms, extra_bed, transport_type, volvo_type, profit_percentage):
-    # **✅ Pricing from Database**
+from .models import TripPlacePricing
+
+from datetime import datetime
+from .models import TripPlacePricing
+
+def calculate_cost(trip_place, travel_date, no_of_pax, no_of_stays, hotel_category, no_of_rooms, extra_bed, transport_type, volvo_type, profit_percentage):
+    # ✅ Travel Date से Pricing Fetch करें
     try:
-        pricing = TripPlacePricing.objects.get(trip_place=trip_place)
+        pricing = TripPlacePricing.objects.get(
+            trip_place=trip_place,
+            start_date__lte=travel_date,
+            end_date__gte=travel_date
+        )
     except TripPlacePricing.DoesNotExist:
-        return {
-            'stay_cost': 0,
-            'transport_cost': 0,
-            'volvo_cost': 0,
-            'operational_cost': 0,
-            'profit_amount': 0,
-            'final_package_cost': 0
-        }
+        return {'error':  f"No package available for {travel_date.strftime('%d-%b-%Y')}"}
 
-    # **✅ Hotel Cost Calculation**
-    if hotel_category.upper() == "STANDARD":
-        hotel_cost = (no_of_rooms * no_of_stays * pricing.STANDARD_ROOM_PRICE) + (extra_bed * no_of_stays * pricing.STANDARD_EXTRA_BED_PRICE)
-    elif hotel_category.upper() == "DELUXE":
-        hotel_cost = (no_of_rooms * no_of_stays * pricing.DELUXE_ROOM_PRICE) + (extra_bed * no_of_stays * pricing.DELUXE_EXTRA_BED_PRICE)
-    elif hotel_category.upper() == "SUPER DELUXE":
-        hotel_cost = (no_of_rooms * no_of_stays * pricing.SUPER_DELUXE_ROOM_PRICE) + (extra_bed * no_of_stays * pricing.SUPER_DELUXE_EXTRA_BED_PRICE)
-    else:
-        hotel_cost = 0
+    # ✅ **Hotel Cost Calculation**
+    hotel_prices = {
+        "STANDARD": (pricing.STANDARD_ROOM_PRICE, pricing.STANDARD_EXTRA_BED_PRICE),
+        "DELUXE": (pricing.DELUXE_ROOM_PRICE, pricing.DELUXE_EXTRA_BED_PRICE),
+        "SUPER DELUXE": (pricing.SUPER_DELUXE_ROOM_PRICE, pricing.SUPER_DELUXE_EXTRA_BED_PRICE),
+    }
+    room_price, extra_bed_price = hotel_prices.get(hotel_category.upper(), (0, 0))
+    hotel_cost = (no_of_rooms * no_of_stays * room_price) + (extra_bed * no_of_stays * extra_bed_price)
 
-    # **✅ Transport Cost Calculation**
+    # ✅ **Transport Cost Calculation**
     transport_rates = {
-        'SEDAN': pricing.SEDAN_PRICE,
-        'SUV': pricing.SUV_PRICE,
-        'TEMPO 14': pricing.TEMPO_14_PRICE,
-        'TEMPO 17': pricing.TEMPO_17_PRICE,
+        'SEDAN': pricing.SEDAN_PRICE, 'SUV': pricing.SUV_PRICE,
+        'TEMPO 14': pricing.TEMPO_14_PRICE, 'TEMPO 17': pricing.TEMPO_17_PRICE
     }
     transport_cost = (no_of_pax + 1) * transport_rates.get(transport_type.upper(), 0)
 
-    # **✅ Volvo Cost Calculation**
+    # ✅ **Volvo Cost Calculation**
     volvo_rates = {
-        '1 SIDE': pricing.VOLVO_1_SIDE_PRICE,
-        'BOTH SIDE': pricing.VOLVO_BOTH_SIDE_PRICE,
+        '1 SIDE': pricing.VOLVO_1_SIDE_PRICE, 'BOTH SIDE': pricing.VOLVO_BOTH_SIDE_PRICE
     }
     volvo_cost = no_of_pax * volvo_rates.get(volvo_type.upper(), 0)
-    print("*******************************",volvo_cost)
 
-    # **✅ Operational Cost**
+    # ✅ **Operational Cost**
     operational_cost = hotel_cost + transport_cost + volvo_cost
 
-    # **✅ Profit Calculation**
+    # ✅ **Profit Calculation**
     profit_percentage_value = float(profit_percentage.strip('%')) / 100
     profit_amount = operational_cost * profit_percentage_value
 
-    # **✅ Final Package Cost**
+    # ✅ **Final Package Cost**
     final_package_cost = operational_cost + profit_amount
 
     return {
-        'stay_cost': hotel_cost,
-        'transport_cost': transport_cost,
-        'volvo_cost': volvo_cost,
-        'operational_cost': operational_cost,
-        'profit_amount': profit_amount,
-        'final_package_cost': final_package_cost
+        'stay_cost': hotel_cost, 'transport_cost': transport_cost,
+        'volvo_cost': volvo_cost, 'operational_cost': operational_cost,
+        'profit_amount': profit_amount, 'final_package_cost': final_package_cost
     }
-
 
 
 from django.shortcuts import render
 from .forms import CostCalculatorForm
-
+from .models import TripPlace
 
 def cost_calculator_view(request):
-    # Initialize variables
     hotel_cost = transport_cost = volvo_cost = operational_cost = profit_amount = final_package_cost = None
+    error_message = None  # 🔹 Store Error Message
 
     if request.method == 'POST':
         form = CostCalculatorForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-
-            # Debugging Prints
-            print(f"Form Data: {data}")
-
-            # ✅ Fetching `trip_place` from the form
             trip_place = data['trip_place']
+            travel_date = data['travel_date']  # ✅ **Date from Form**
 
-            # ✅ Calling the updated `calculate_cost` function
+            # ✅ **Calling the Updated Cost Calculation Function**
             cost_details = calculate_cost(
-                trip_place,
-                data['no_of_pax'], 
-                data['no_of_stays'], 
-                data['hotel_category'], 
-                data['no_of_rooms'], 
-                data.get('extra_bed', 0) or 0,  # Handle None case
-                data['transport_type'], 
-                data['volvo_type'],
-                data['profit_percentage']  
+                trip_place, travel_date, data['no_of_pax'], data['no_of_stays'],
+                data['hotel_category'], data['no_of_rooms'], data.get('extra_bed', 0) or 0,
+                data['transport_type'], data['volvo_type'], data['profit_percentage']
             )
 
-            # ✅ Assigning the calculated values
-            hotel_cost = cost_details['stay_cost']
-            transport_cost = cost_details['transport_cost']
-            volvo_cost = cost_details['volvo_cost']
-            operational_cost = cost_details['operational_cost']
-            profit_amount = cost_details['profit_amount']
-            final_package_cost = cost_details['final_package_cost']
-
+            # ✅ **Check if Error Message is Present**
+            if 'error' in cost_details:
+                error_message = cost_details['error']
+                print("hrhrhrrhrhhrrhhrhrhr",error_message)
+            else:
+                # ✅ **Assigning Values**
+                hotel_cost = cost_details['stay_cost']
+                transport_cost = cost_details['transport_cost']
+                volvo_cost = cost_details['volvo_cost']
+                operational_cost = cost_details['operational_cost']
+                profit_amount = cost_details['profit_amount']
+                final_package_cost = cost_details['final_package_cost']
     else:
         form = CostCalculatorForm()
 
     return render(request, 'templates/calculator.html', {
-        'form': form,
-        'hotel_cost': hotel_cost,
-        'transport_cost': transport_cost,
-        'volvo_cost': volvo_cost,
-        'operational_cost': operational_cost,
-        'profit_amount': profit_amount,
-        'final_package_cost': final_package_cost
+        'form': form, 'hotel_cost': hotel_cost, 'transport_cost': transport_cost,
+        'volvo_cost': volvo_cost, 'operational_cost': operational_cost,
+        'profit_amount': profit_amount, 'final_package_cost': final_package_cost,
+        'error_message': error_message  # ✅ Pass Error Message to Template
     })
 
 

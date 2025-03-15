@@ -1,9 +1,9 @@
 from django import forms
-
 from .models import TripPlace
 
 class CostCalculatorForm(forms.Form):
     trip_place = forms.ModelChoiceField(queryset=TripPlace.objects.all(), label="Destinations")
+    travel_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="Travel Date")
     no_of_pax = forms.IntegerField(label="Number of People")
     no_of_stays = forms.IntegerField(label="Number of Stays")
     no_of_rooms = forms.IntegerField(label="Number of Rooms")
@@ -29,4 +29,3 @@ class CostCalculatorForm(forms.Form):
         choices=[('20%', '20%'), ('25%', '25%'), ('30%', '30%'), ('35%', '35%'), ('40%', '40%')],
         label="Profit Percentage"
     )
-

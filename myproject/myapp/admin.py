@@ -1,9 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
-
-
-from django.contrib import admin
 from .models import HotelPrice, TransportPrice, TripPlace, TripPlacePricing, VolvoPrice
 
 # @admin.register(HotelPrice)
@@ -24,5 +19,7 @@ class TripPlaceAdmin(admin.ModelAdmin):
 
 @admin.register(TripPlacePricing)
 class TripPlacePricingAdmin(admin.ModelAdmin):
-    list_display = ('trip_place',)
-    list_filter = ('trip_place',)
+    list_display = ('trip_place', 'start_date', 'end_date', 'month', 'year', 'STANDARD_ROOM_PRICE', 'SUV_PRICE')
+    list_filter = ('trip_place', 'start_date', 'end_date', 'month', 'year')
+
+
