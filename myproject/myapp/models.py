@@ -56,6 +56,9 @@ class VolvoPrice(models.Model):
 # .....................................................................
     
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from datetime import timedelta
 
 class TripPlace(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -71,29 +74,38 @@ class TripPlace(models.Model):
 class TripPlacePricing(models.Model):
     trip_place = models.ForeignKey(TripPlace, on_delete=models.CASCADE)
 
-    # Hotel Pricing
+    # 🔹 Price Validity Based on Dates
+    start_date = models.DateField(_("Price Valid From"))
+    end_date = models.DateField(_("Price Valid To"))
+
+    # 🔹 Month & Year for Monthly Management
+    month = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 13)], blank=True, null=True)  # 1 to 12 (Jan to Dec)
+    year = models.PositiveIntegerField(blank=True, null=True)
+
+    # ✅ Hotel Pricing
     STANDARD_ROOM_PRICE = models.PositiveIntegerField(default=0)
     DELUXE_ROOM_PRICE = models.PositiveIntegerField(default=0)
     SUPER_DELUXE_ROOM_PRICE = models.PositiveIntegerField(default=0)
-    
+
     STANDARD_EXTRA_BED_PRICE = models.PositiveIntegerField(default=0)
     DELUXE_EXTRA_BED_PRICE = models.PositiveIntegerField(default=0)
     SUPER_DELUXE_EXTRA_BED_PRICE = models.PositiveIntegerField(default=0)
 
-    # Transport Pricing
+    # ✅ Transport Pricing
     SEDAN_PRICE = models.PositiveIntegerField(default=0)
     SUV_PRICE = models.PositiveIntegerField(default=0)
     TEMPO_14_PRICE = models.PositiveIntegerField(default=0)
     TEMPO_17_PRICE = models.PositiveIntegerField(default=0)
 
-    # Volvo Pricing
+    # ✅ Volvo Pricing
     VOLVO_1_SIDE_PRICE = models.PositiveIntegerField(default=0)
     VOLVO_BOTH_SIDE_PRICE = models.PositiveIntegerField(default=0)
 
     class Meta:
         verbose_name = "Destination Price"
-        verbose_name_plural = "Destination Price"
+        verbose_name_plural = "Destination Prices"
+        unique_together = ('trip_place', 'month', 'year')  # ✅ Ensures unique pricing per month
 
     def __str__(self):
-        return f"{self.trip_place} Pricing"
+        return f"{self.trip_place} - {self.start_date.strftime('%d-%b-%Y')} to {self.end_date.strftime('%d-%b-%Y')}"
 
