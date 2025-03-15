@@ -1,13 +1,35 @@
 from django import forms
 from .models import TripPlace
+from django.core.validators import MaxValueValidator
 
 class CostCalculatorForm(forms.Form):
     trip_place = forms.ModelChoiceField(queryset=TripPlace.objects.all(), label="Destinations")
     travel_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), label="Travel Date")
-    no_of_pax = forms.IntegerField(label="Number of People")
-    no_of_stays = forms.IntegerField(label="Number of Stays")
-    no_of_rooms = forms.IntegerField(label="Number of Rooms")
-    extra_bed = forms.IntegerField(label="Extra Beds", required=False, initial=0)
+    no_of_pax = forms.IntegerField(
+        label="Number of People",
+        validators=[MaxValueValidator(999)],
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 999, 'oninput': "limitDigits(this, 3)"})
+    )
+    
+    no_of_stays = forms.IntegerField(
+        label="Number of Stays",
+        validators=[MaxValueValidator(999)],
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 999, 'oninput': "limitDigits(this, 3)"})
+    )
+    
+    no_of_rooms = forms.IntegerField(
+        label="Number of Rooms",
+        validators=[MaxValueValidator(999)],
+        widget=forms.NumberInput(attrs={'min': 1, 'max': 999, 'oninput': "limitDigits(this, 3)"})
+    )
+    
+    extra_bed = forms.IntegerField(
+        label="Extra Beds",
+        required=False,
+        initial=0,
+        validators=[MaxValueValidator(999)],
+        widget=forms.NumberInput(attrs={'min': 0, 'max': 999, 'oninput': "limitDigits(this, 3)"})
+    )
 
     hotel_category = forms.ChoiceField(
         choices=[('STANDARD', 'Standard'), ('DELUXE', 'Deluxe'), ('SUPER DELUXE', 'Super Deluxe')],
