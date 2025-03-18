@@ -48,7 +48,7 @@ def calculate_cost(trip_place, travel_date, no_of_pax, no_of_stays, hotel_catego
         'SEDAN': pricing.SEDAN_PRICE, 'SUV': pricing.SUV_PRICE,
         'TEMPO 14': pricing.TEMPO_14_PRICE, 'TEMPO 17': pricing.TEMPO_17_PRICE
     }
-    transport_cost = (no_of_pax + 1) * transport_rates.get(transport_type.upper(), 0)
+    transport_cost = (no_of_stays + 1) * transport_rates.get(transport_type.upper(), 0)
 
     # ✅ **Volvo Cost Calculation**
     volvo_rates = {
